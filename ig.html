@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InstaSaver - Instagram Media Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .logo svg {
+            width: 40px;
+            height: 40px;
+            fill: #e4405f;
+        }
+
+        .logo h1 {
+            color: #333;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="url"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #e4405f;
+            box-shadow: 0 0 0 3px rgba(228, 64, 95, 0.1);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #e4405f, #c13584);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 160px;
+            justify-content: center;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(228, 64, 95, 0.3);
+        }
+
+        .download-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .features {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+
+        .feature {
+            padding: 20px;
+            background: rgba(228, 64, 95, 0.1);
+            border-radius: 10px;
+        }
+
+        .feature svg {
+            width: 30px;
+            height: 30px;
+            fill: #e4405f;
+            margin-bottom: 10px;
+        }
+
+        .feature h3 {
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .logo h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+            </svg>
+            <h1>InstaSaver</h1>
+        </div>
+        
+        <p class="description">
+            Download Instagram posts and reels easily. Just paste the Instagram URL below and click download.
+        </p>
+
+        <div class="input-group">
+            <label for="instagram-url">Instagram Post/Reel URL:</label>
+            <input 
+                type="url" 
+                id="instagram-url" 
+                placeholder="https://www.instagram.com/p/ABC123... or https://www.instagram.com/reel/XYZ789..."
+                required
+            >
+        </div>
+
+        <button class="download-btn" onclick="downloadMedia()">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C11.4477 2 11 2.44772 11 3V15.5858L8.70711 13.2929C8.31658 12.9024 7.68342 12.9024 7.29289 13.2929C6.90237 13.6834 6.90237 14.3166 7.29289 14.7071L11.2929 18.7071C11.6834 19.0976 12.3166 19.0976 12.7071 18.7071L16.7071 14.7071C17.0976 14.3166 17.0976 13.6834 16.7071 13.2929C16.3166 12.9024 15.6834 12.9024 15.2929 13.2929L13 15.5858V3C13 2.44772 12.5523 2 12 2ZM5 20C4.44772 20 4 20.4477 4 21C4 21.5523 4.44772 22 5 22H19C19.5523 22 20 21.5523 20 21C20 20.4477 19.5523 20 19 20H5Z"/>
+            </svg>
+            <span>Download</span>
+        </button>
+
+        <div class="status" id="status"></div>
+
+        <div class="features">
+            <div class="feature">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <h3>High Quality</h3>
+            </div>
+            <div class="feature">
+                <svg viewBox="0 0 24 24">
+                    <path d="M13 9h5.5L13 3.5V9zM6 2h8l6 6v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4c0-1.1.9-2 2-2zm9 16v-2H6v2h9zm3-4v-2H6v2h12z"/>
+                </svg>
+                <h3>Multiple Formats</h3>
+            </div>
+            <div class="feature">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                </svg>
+                <h3>Safe & Secure</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function downloadFile(url, filename) {
+            return fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(blobUrl);
+                })
+                .catch(error => {
+                    console.error(`Error downloading ${filename}:`, error);
+                    throw error;
+                });
+        }
+
+        function extractUrls(data, type) {
+            try {
+                let mediaItems;
+                
+                // Try different possible data structures
+                if (data.items && data.items[0]) {
+                    mediaItems = data.items[0];
+                } else if (data.data && data.data.items && data.data.items[0]) {
+                    mediaItems = data.data.items[0];
+                } else {
+                    throw new Error('Media items not found in response');
+                }
+
+                if (type === 'post') {
+                    const singleMulti = mediaItems.carousel_media ? mediaItems.carousel_media : [mediaItems];
+                    return singleMulti
+                        .map(mediaItem => mediaItem.image_versions2?.candidates[0]?.url)
+                        .filter(url => url);
+                } else {
+                    return mediaItems.video_versions?.[0]?.url;
+                }
+            } catch (error) {
+                console.error(`Error extracting ${type} URLs:`, error);
+                return type === 'post' ? [] : null;
+            }
+        }
+
+        async function fetchInstagramData(url) {
+            // Extract shortcode from URL
+            const match = url.match(/\/(p|reel)\/([a-zA-Z0-9_-]+)/);
+            if (!match) {
+                throw new Error('Invalid Instagram URL format');
+            }
+
+            const [, type, shortcode] = match;
+            
+            // This is a simplified approach - in a real implementation, you would need:
+            // 1. A backend service to handle Instagram API requests
+            // 2. Proper authentication and rate limiting
+            // 3. CORS proxy for cross-origin requests
+            
+            // For demonstration purposes, we'll show how the extraction would work
+            // if you had access to Instagram's data
+            showStatus('Note: This is a demo version. In a real implementation, you would need a backend service to fetch Instagram data due to CORS restrictions.', 'info');
+            
+            // Simulated response structure (this would come from your backend)
+            const simulatedData = {
+                items: [{
+                    image_versions2: {
+                        candidates: [{ url: 'https://example.com/image.jpg' }]
+                    },
+                    video_versions: [{ url: 'https://example.com/video.mp4' }],
+                    carousel_media: null
+                }]
+            };
+
+            return { data: simulatedData, type: type === 'p' ? 'post' : 'reel', shortcode };
+        }
+
+        async function downloadMedia() {
+            const urlInput = document.getElementById('instagram-url');
+            const downloadBtn = document.querySelector('.download-btn');
+            const url = urlInput.value.trim();
+
+            if (!url) {
+                showStatus('Please enter an Instagram URL', 'error');
+                return;
+            }
+
+            if (!url.includes('instagram.com')) {
+                showStatus('Please enter a valid Instagram URL', 'error');
+                return;
+            }
+
+            // Disable button and show loading
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<div class="loading"></div><span>Processing...</span>';
+
+            try {
+                showStatus('Processing Instagram URL...', 'info');
+                
+                const { data, type, shortcode } = await fetchInstagramData(url);
+                
+                if (type === 'post') {
+                    const imageUrls = extractUrls(data, 'post');
+                    if (imageUrls.length === 0) {
+                        throw new Error('No images found in this post');
+                    }
+                    
+                    showStatus(`Found ${imageUrls.length} image(s). Starting download...`, 'info');
+                    
+                    for (let i = 0; i < imageUrls.length; i++) {
+                        await downloadFile(imageUrls[i], `${shortcode}_${i + 1}.jpg`);
+                    }
+                    
+                    showStatus(`Successfully downloaded ${imageUrls.length} image(s)!`, 'success');
+                } else {
+                    const videoUrl = extractUrls(data, 'reel');
+                    if (!videoUrl) {
+                        throw new Error('No video found in this reel');
+                    }
+                    
+                    showStatus('Found video. Starting download...', 'info');
+                    await downloadFile(videoUrl, `${shortcode}.mp4`);
+                    showStatus('Successfully downloaded video!', 'success');
+                }
+
+            } catch (error) {
+                console.error('Download error:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+            } finally {
+                // Re-enable button
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = `
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C11.4477 2 11 2.44772 11 3V15.5858L8.70711 13.2929C8.31658 12.9024 7.68342 12.9024 7.29289 13.2929C6.90237 13.6834 6.90237 14.3166 7.29289 14.7071L11.2929 18.7071C11.6834 19.0976 12.3166 19.0976 12.7071 18.7071L16.7071 14.7071C17.0976 14.3166 17.0976 13.6834 16.7071 13.2929C16.3166 12.9024 15.6834 12.9024 15.2929 13.2929L13 15.5858V3C13 2.44772 12.5523 2 12 2ZM5 20C4.44772 20 4 20.4477 4 21C4 21.5523 4.44772 22 5 22H19C19.5523 22 20 21.5523 20 21C20 20.4477 19.5523 20 19 20H5Z"/>
+                    </svg>
+                    <span>Download</span>
+                `;
+            }
+        }
+
+        // Allow Enter key to trigger download
+        document.getElementById('instagram-url').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                downloadMedia();
+            }
+        });
+
+        // Auto-focus on URL input
+        document.getElementById('instagram-url').focus();
+    </script>
+</body>
+</html>
